@@ -1,8 +1,8 @@
 import React, { FunctionComponent, useEffect } from 'react';
-import { Text } from 'react-native';
+import { Image, View, FlatList, StyleSheet, Text } from 'react-native';
 import { RootState } from "../../app/store";
 import { useDispatch, useSelector } from 'react-redux'
-import {fetchUsers} from './usersSlice'
+import {fetchUsers, User} from './usersSlice'
 
 
 const UsersList: FunctionComponent = () => {
@@ -13,6 +13,12 @@ const UsersList: FunctionComponent = () => {
   useEffect(() => {
     dispatch(fetchUsers({page: 1}));
   }, []);
+
+  const handleOnEndReached = () => {
+    if (!users.loading) {
+      dispatch(fetchUsers({page: users.nextPage}))
+    }
+  }
 
     return (
       <>
@@ -25,9 +31,42 @@ const UsersList: FunctionComponent = () => {
         {!users.loading && !users.error &&
         <Text>Default</Text>
         }
-        <Text>{JSON.stringify(users.users)}</Text>
+        <FlatList
+          data={users.users}
+          keyExtractor={(_, index) => {
+            return index.toString()
+          }}
+          renderItem={ ({item}) => <UserListItem user={item} />}
+          onEndReached={handleOnEndReached}
+        />
       </>
     );
 };
 
+const UserListItem: FunctionComponent<{user: User}> = ({user}) => {
+  return (
+    <View style={style.container}>
+      <Image style={style.thumbnail} source={{uri: user.picture.thumbnail}} />
+      <Text style={style.nameText}>{user.name.first}</Text>
+    </View>
+  )
+}
+
+const style = StyleSheet.create( {
+  container: {
+    flexDirection: 'row',
+    padding: 15,
+    alignItems: 'center',
+  },
+  nameText: {
+    padding: 15,
+  },
+  thumbnail: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    borderColor: 'lime',
+    borderWidth: 2,
+  }
+})
 export default UsersList;

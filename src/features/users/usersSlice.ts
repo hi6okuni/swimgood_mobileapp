@@ -2,19 +2,26 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
 import * as apiClient from '../../apiClient'
 
 export type User = {
-    name: string;
+    name: {
+      first: string;
+    };
+    picture: {
+      thumbnail: string;
+    }
 }
 
 export type UsersState = {
     users: User[]
     loading: boolean;
     error: boolean;
+    nextPage: number;
 }
 
 const initialState: UsersState = {
     users: [],
     loading: true,
     error: true,
+    nextPage: 1,
 }
 
 // createAsyncThunkの型
@@ -46,7 +53,8 @@ const usersSlice = createSlice({
                 state.error = false;
             })
             .addCase(fetchUsers.fulfilled, (state, action) => {
-                state.users = action.payload.users;
+                state.nextPage += 1;
+                state.users = state.users.concat(action.payload.users)
                 state.loading = false;
             })
             .addCase(fetchUsers.rejected, (state) => {
